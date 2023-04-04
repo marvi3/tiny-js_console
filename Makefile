@@ -9,7 +9,7 @@ TinyJS_MathFunctions.cpp
 
 OBJECTS=$(SOURCES:.cpp=.o)
 
-all: run_tests Script
+all: run_tests Script console
 
 run_tests: run_tests.o $(OBJECTS)
 	$(CC) $(LDFLAGS) run_tests.o $(OBJECTS) -o $@
@@ -17,8 +17,11 @@ run_tests: run_tests.o $(OBJECTS)
 Script: Script.o $(OBJECTS)
 	$(CC) $(LDFLAGS) Script.o $(OBJECTS) -o $@
 
+console: console.o $(OBJECTS)
+	$(CC) $(LDFLAGS) console.o $(OBJECTS) -o $@
+
 .cpp.o:
 	$(CC) $(CFLAGS) $< -o $@
 
 clean:
-	rm -f run_tests Script run_tests.o Script.o $(OBJECTS)
+	rm -f run_tests Script console run_tests.o Script.o console.o $(OBJECTS)

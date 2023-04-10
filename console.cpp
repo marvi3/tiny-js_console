@@ -46,7 +46,7 @@
 
 using namespace std;
 
-int run_command(char command) {
+/*int run_command(char command) {
   CTinyJS s;
   registerFunctions(&s);
   registerMathFunctions(&s);
@@ -57,12 +57,13 @@ int run_command(char command) {
     printf("ERROR: %s\n", e->text.c_str());
   }
   CScriptVar *pass = s.root->getParameter("result");
+  string result = pass->getString();
 
   if (pass->getBool())
-    printf("%s\n", pass->getString());
+    printf("%s \n", result.c_str());
   else {
     char fn[64];
-    sprintf(fn, "\"%s\"", command);
+    sprintf(fn, "\"%s\"", &command);
     FILE *f = fopen(fn, "wt");
     if (f) {
       std::ostringstream symbols;
@@ -95,10 +96,10 @@ int run_console() {
   }
   return 0;
   
-}
+}*/
 
 bool run_test(const char *filename) {
-  printf("TEST %s ", filename);
+  printf("Executing %s. The result is: \n", filename);
   struct stat results;
   if (!stat(filename, &results) == 0) {
     printf("Cannot stat file! '%s'\n", filename);
@@ -127,9 +128,10 @@ bool run_test(const char *filename) {
     printf("ERROR: %s\n", e->text.c_str());
   }
   bool pass = s.root->getParameter("result")->getBool();
+  string result = s.root->getParameter("result")->getString();
 
   if (pass)
-    printf("PASS\n");
+    printf("%s \n", result.c_str());
   else {
     char fn[64];
     sprintf(fn, "%s.fail.js", filename);
@@ -141,7 +143,7 @@ bool run_test(const char *filename) {
       fclose(f);
     }
 
-    printf("FAIL - symbols written to %s\n", fn);
+    printf("Executing the js-command %s failed.\n", fn);
   }
 
   delete[] buffer;
@@ -152,41 +154,18 @@ int main(int argc, char **argv)
 {
   printf("TinyJS console\n");
   printf("USAGE:\n");
-  printf("   ./console file.js       : run the code in a file\n");
-  printf("   ./console               : start a console where you can enter new commands\n");
+  printf("   ./console file.js       : run the code of a file\n");
   if (argc==2) {
     return !run_test(argv[1]);
   } else if (argc==1) {
-    run_console();
+    printf("You have to give one filepath as an argument to run");
   } else
   {
-    printf("You can give maximum one argument which has to be a file-name");
+    for (int i = 1; i < argc; i++)
+    {
+      run_test(argv[i]);
+    }
   }
-  
-
-  int test_num = 1;
-  int count = 0;
-  int passed = 0;
-
-  while (test_num<1000) {
-    char fn[32];
-    sprintf(fn, "tests/test%03d.js", test_num);
-    // check if the file exists - if not, assume we're at the end of our tests
-    FILE *f = fopen(fn,"r");
-    if (!f) break;
-    fclose(f);
-
-    if (run_test(fn))
-      passed++;
-    count++;
-    test_num++;
-  }
-
-  printf("Done. %d tests, %d pass, %d fail\n", count, passed, count-passed);
-
-#ifdef MTRACE
-  muntrace();
-#endif
 
   return 0;
 }

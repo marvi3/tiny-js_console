@@ -4,3 +4,4 @@ build.*/
 Script
 run_tests
 console
+*.o

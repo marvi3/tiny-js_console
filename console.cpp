@@ -118,6 +118,7 @@ bool run_afl_test(const char *filename) {
 
     return pass;
   }
+  return false;
 }
 
 int main(int argc, char **argv)

@@ -104,39 +104,41 @@ bool run_test(const char *filename) {
 bool run_afl_test(const char *filename) {
 
   unsigned char *buffer = __AFL_FUZZ_TESTCASE_BUF;
+  CTinyJS s;
+  registerFunctions(&s);
+  registerMathFunctions(&s);
   while (__AFL_LOOP(1000)) {
     
-    CTinyJS s;
-    registerFunctions(&s);
-    registerMathFunctions(&s);
     s.root->addChild("result", new CScriptVar("0",SCRIPTVAR_INTEGER));
     try {
       s.execute((char *)buffer);
     } catch (CScriptException *e) {
     }
     bool pass = s.root->getParameter("result")->getBool();
-
-    return pass;
   }
   return false;
 }
 
 int main(int argc, char **argv)
 {
-  printf("TinyJS console\n");
-  printf("USAGE:\n");
-  printf("   ./console file.js       : run the code of a file\n");
-  if (argc==2) {
+  // printf("TinyJS console\n");
+  // printf("USAGE:\n");
+  // printf("   ./console file.js       : run the code of a file\n");
+  
+  #ifdef __AFL_HAVE_MANUAL_CONTROL
     return !run_afl_test(argv[1]);
-  } else if (argc==1) {
-    printf("You have to give one filepath as an argument to run");
-  } else
-  {
-    for (int i = 1; i < argc; i++)
-    {
-      run_test(argv[i]);
-    }
-  }
+  #endif
+  // if (argc==2) {
+  //   return !run_test(argv[1]);
+  // } else if (argc==1) {
+  //   printf("You have to give one filepath as an argument to run");
+  // } else
+  // {
+  //   for (int i = 1; i < argc; i++)
+  //   {
+  //     run_test(argv[i]);
+  //   }
+  // }
 
   return 0;
 }

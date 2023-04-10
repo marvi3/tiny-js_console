@@ -104,11 +104,11 @@ bool run_test(const char *filename) {
 bool run_afl_test(const char *filename) {
 
   unsigned char *buffer = __AFL_FUZZ_TESTCASE_BUF;
-  CTinyJS s;
-  registerFunctions(&s);
-  registerMathFunctions(&s);
   while (__AFL_LOOP(1000)) {
     
+    CTinyJS s;
+    registerFunctions(&s);
+    registerMathFunctions(&s);
     s.root->addChild("result", new CScriptVar("0",SCRIPTVAR_INTEGER));
     try {
       s.execute((char *)buffer);
@@ -116,7 +116,6 @@ bool run_afl_test(const char *filename) {
     }
     bool pass = s.root->getParameter("result")->getBool();
 
-    delete[] buffer;
     return pass;
   }
 }
@@ -127,10 +126,7 @@ int main(int argc, char **argv)
   printf("USAGE:\n");
   printf("   ./console file.js       : run the code of a file\n");
   if (argc==2) {
-    #ifdef __AFL_HAVE_MANUAL_CONTROL
-      return !run_afl_test(argv[1]);
-    #endif
-    return !run_test(argv[1]);
+    return !run_afl_test(argv[1]);
   } else if (argc==1) {
     printf("You have to give one filepath as an argument to run");
   } else

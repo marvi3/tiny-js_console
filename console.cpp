@@ -44,59 +44,9 @@
   #include <mcheck.h>
 #endif
 
+__AFL_FUZZ_INIT();
+
 using namespace std;
-
-/*int run_command(char command) {
-  CTinyJS s;
-  registerFunctions(&s);
-  registerMathFunctions(&s);
-  s.root->addChild("result", new CScriptVar("0",SCRIPTVAR_INTEGER));
-  try {
-    s.execute(&command);
-  } catch (CScriptException *e) {
-    printf("ERROR: %s\n", e->text.c_str());
-  }
-  CScriptVar *pass = s.root->getParameter("result");
-  string result = pass->getString();
-
-  if (pass->getBool())
-    printf("%s \n", result.c_str());
-  else {
-    char fn[64];
-    sprintf(fn, "\"%s\"", &command);
-    FILE *f = fopen(fn, "wt");
-    if (f) {
-      std::ostringstream symbols;
-      s.root->getJSON(symbols);
-      fprintf(f, "%s", symbols.str().c_str());
-      fclose(f);
-    }
-
-    printf("Executing the js-command %s failed.\n", fn);
-  }
-  return 0;
-}
-
-int run_console() {
-  while (true)
-  {
-    char consoleInput;
-    cin >> consoleInput;
-    int ret = run_command(consoleInput);
-    if (ret == 0)
-    {
-      continue;
-    } else if (ret == 1)
-    {
-      break;
-    } else {
-      return 1;
-    }
-    
-  }
-  return 0;
-  
-}*/
 
 bool run_test(const char *filename) {
   printf("Executing %s. The result is: \n", filename);
@@ -112,6 +62,7 @@ bool run_test(const char *filename) {
      printf("Unable to open file! '%s'\n", filename);
      return false;
   }
+
   char *buffer = new char[size+1];
   long actualRead = fread(buffer,1,size,file);
   buffer[actualRead]=0;
@@ -150,12 +101,35 @@ bool run_test(const char *filename) {
   return pass;
 }
 
+bool run_afl_test(const char *filename) {
+
+  unsigned char *buffer = __AFL_FUZZ_TESTCASE_BUF;
+  CTinyJS s;
+  registerFunctions(&s);
+  registerMathFunctions(&s);
+  while (__AFL_LOOP(1000)) {
+    
+    s.root->addChild("result", new CScriptVar("0",SCRIPTVAR_INTEGER));
+    try {
+      s.execute((char *)buffer);
+    } catch (CScriptException *e) {
+    }
+    bool pass = s.root->getParameter("result")->getBool();
+
+    delete[] buffer;
+    return pass;
+  }
+}
+
 int main(int argc, char **argv)
 {
   printf("TinyJS console\n");
   printf("USAGE:\n");
   printf("   ./console file.js       : run the code of a file\n");
   if (argc==2) {
+    #ifdef __AFL_HAVE_MANUAL_CONTROL
+      return !run_afl_test(argv[1]);
+    #endif
     return !run_test(argv[1]);
   } else if (argc==1) {
     printf("You have to give one filepath as an argument to run");

@@ -1,4 +1,4 @@
-CC=afl-c++
+CC=afl-clang-lto++
 AFL_USE_ASAN=1
 CFLAGS=-c -g -Wall -rdynamic -D_DEBUG
 LDFLAGS=-g -rdynamic
